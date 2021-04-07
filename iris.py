@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from PIL import Image
  
+
+# user_input2 = st.text_area("label goes here", 'default') 
 st.title('鸢尾花数据集分析')
 if st.checkbox('鸢尾花介绍'):
 
@@ -14,8 +16,8 @@ if st.checkbox('鸢尾花介绍'):
     iris:鸢尾花  
     petal:花瓣  
     sepal:花萼    
-    >花萼是一朵花中所有萼片的总称，包被在花的最外层。萼片一般呈绿色的叶片状，其形态和构造与叶片相似。
-
+    >花萼是一朵花中所有萼片的总称，包被在花的最外层。萼片一般呈绿色的叶片状，其形态和构造与叶片相似。  
+    >该数据集中的鸢尾花种类分为*Setosa*,*Versicolor*,*Virginica*三种
     '''
     image = Image.open('iris.png')
     st.image(image, caption='鸢尾花图解')
@@ -76,7 +78,7 @@ labels = df['variety'].values
  
 X_train,X_test, y_train, y_test = train_test_split(features, labels, train_size=0.7, random_state=1)
  
-alg = ['Decision Tree', 'Support Vector Machine']
+alg = ['Support Vector Machine', 'Decision Tree']
 classifier = st.sidebar.selectbox('算法选择', alg)
 if classifier=='Decision Tree':
     dtc = DecisionTreeClassifier()
@@ -86,10 +88,17 @@ if classifier=='Decision Tree':
     st.write('准确率: ', '%.2f%%' % (acc * 100))
     #st.write('准确率: ', acc)
     pred_dtc = dtc.predict(X_test)
-    cm_dtc=confusion_matrix(y_test,pred_dtc)
+    #cm_dtc=confusion_matrix(y_test,pred_dtc)
     #st.write('Confusion matrix: ', cm_dtc)
-    st.write('混淆矩阵: ', cm_dtc)
- 
+    #st.write('混淆矩阵: ', cm_dtc)
+    feature_input = st.text_input("请输入4个以逗号分割的特征值")
+    ans = feature_input.split(',')
+    for i in range(len(ans)):
+        ans[i] = float(ans[i])
+    feature_value = np.array([(ans)])
+    if feature_input:
+        feature_prdt = dtc.predict(feature_value)
+        st.write('预测结果为: ', feature_prdt[0]) 
      
 elif classifier == 'Support Vector Machine':
     svm=SVC()
@@ -98,7 +107,14 @@ elif classifier == 'Support Vector Machine':
     st.write('准确率: ', '%.2f%%' % (acc * 100))
     #st.write('准确率: ', acc)
     pred_svm = svm.predict(X_test)
-    cm=confusion_matrix(y_test,pred_svm)
+    #cm=confusion_matrix(y_test,pred_svm)
     #st.write('Confusion matrix: ', cm)
-    st.write('混淆矩阵: ', cm)
-    
+    #st.write('混淆矩阵: ', cm)
+    feature_input = st.text_input("请输入4个以逗号分割的特征值")
+    ans = feature_input.split(',')
+    for i in range(len(ans)):
+        ans[i] = float(ans[i])
+    feature_value = np.array([(ans)])
+    if feature_input:
+        feature_prdt = svm.predict(feature_value)
+        st.write('预测结果为: ', feature_prdt[0])
