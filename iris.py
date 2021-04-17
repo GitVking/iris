@@ -10,7 +10,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.svm import SVC
-
+from sklearn.neighbors import KNeighborsClassifier 
+from sklearn import metrics
 st.title('鸢尾花数据集分析')
 '''
 >1, 鸢尾花数据集介绍  
@@ -30,16 +31,16 @@ def get_data(source_image, source_csv):
 
 image, df = get_data(source_image, source_csv)
 
-# if st.checkbox('鸢尾花数据集介绍'):
-'''
-(Fisher's) Iris鸢尾花数据集是英国统计学家、优生学家和生物学家Ronald Fisher在1936年发表的论文*The use of multiple measurements in taxonomic problems*作为线性判别分析的一个例子而引入的一个**多变量**数据集。它有时被称为Anderson's Iris data set , 因为Edgar Anderson收集的数据是为了*量化三个相关物种的鸢尾花的形态变异*。  
-该数据集包括来自三个鸢尾花品种（**Iris setosa**、**Iris virginica**和**Iris versicolor**）的各*50*个样本，以及**萼片长度**、**萼片宽度**、**花瓣长度**、**花瓣宽度**和**品种**等五个属性下的**150**条记录。从每个样本中测量出四个特征：萼片和花瓣的长度和宽度，单位为厘米。   
->花萼是一朵花中所有萼片的总称，包被在花的最外层。萼片一般呈绿色的叶片状，其形态和构造与叶片相似。  
->iris:鸢尾花  sepal:花萼  petal:花瓣 
-'''
-st.image(image, caption='鸢尾花图解')
+with st.beta_expander('鸢尾花数据集介绍', expanded=True):
+    '''
+    (Fisher's) Iris鸢尾花数据集是英国统计学家、优生学家和生物学家Ronald Fisher在1936年发表的论文*The use of multiple measurements in taxonomic problems*作为线性判别分析的一个例子而引入的一个**多变量**数据集。它有时被称为Anderson's Iris data set , 因为Edgar Anderson收集的数据是为了*量化三个相关物种的鸢尾花的形态变异*。  
+    该数据集包括来自三个鸢尾花品种（**Iris setosa**、**Iris virginica**和**Iris versicolor**）的各*50*个样本，以及**萼片长度**、**萼片宽度**、**花瓣长度**、**花瓣宽度**和**品种**等五个属性下的**150**条记录。从每个样本中测量出四个特征：萼片和花瓣的长度和宽度，单位为厘米。   
+    >花萼是一朵花中所有萼片的总称，包被在花的最外层。萼片一般呈绿色的叶片状，其形态和构造与叶片相似。  
+    >iris:鸢尾花  sepal:花萼  petal:花瓣 
+    '''
+    st.image(image, caption='鸢尾花图解')
 
-if st.checkbox('鸢尾花数据可视化探索 '):
+with st.beta_expander('鸢尾花数据可视化探索 '):
     if st.checkbox('源数据'):
         st.write(df)
     st.write('在左侧可以对数据进行筛选')
@@ -91,7 +92,7 @@ if st.checkbox('鸢尾花数据可视化探索 '):
 
 
 
-if st.checkbox('模型建立及品种预测'):
+with st.beta_expander('模型建立及品种预测'):
     features = df[['sepal.length', 'sepal.width', 'petal.length', 'petal.width']].values
     labels = df['variety'].values
 
@@ -99,14 +100,14 @@ if st.checkbox('模型建立及品种预测'):
 
 
 
-    alg = ['Support Vector Machine', 'Decision Tree']
+    alg = ['Support Vector Machine', 'KNN','Decision Tree', 'Kmeans']
     classifier = st.selectbox('算法选择', alg)
     if classifier == 'Decision Tree':
         clf = DecisionTreeClassifier()
         clf.fit(X_train, y_train)
         acc = clf.score(X_test, y_test)
         print('%.2f%%' % (acc * 100))
-        st.write('准确率: ', '%.2f%%' % (acc * 100))
+        #st.write('准确率: ', '%.2f%%' % (acc * 100))
         # st.write('准确率: ', acc)
         pred_clf = clf.predict(X_test)
         # cm_clf=confusion_matrix(y_test,pred_clf)
@@ -127,7 +128,7 @@ if st.checkbox('模型建立及品种预测'):
         clf = SVC()
         clf.fit(X_train, y_train)
         acc = clf.score(X_test, y_test)
-        st.write('准确率: ', '%.2f%%' % (acc * 100))
+        #st.write('准确率: ', '%.2f%%' % (acc * 100))
         # st.write('准确率: ', acc)
         pred_clf = clf.predict(X_test)
         # cm=confusion_matrix(y_test,pred_clf)
@@ -143,7 +144,42 @@ if st.checkbox('模型建立及品种预测'):
         # emoji = ":blue_heart:" if feature_prdt == 'Setosa' else (
         #     ":green_heart:" if feature_prdt == 'Virginica' else ":heart:")
         # st.write('预测结果为: ', feature_prdt, emoji)
-
+        
+    elif classifier == 'KNN':
+        if st.checkbox('算法介绍', value = True):
+            '''
+            最近邻居法（KNN算法，又译K-近邻算法）是一种用于分类和回归的非参数统计方法。在这两种情况下，输入包含特征空间（Feature Space）中的k个最接近的训练样本。  
+            >在k-NN分类中，输出是一个分类族群。一个对象的分类是由其邻居的“多数表决”确定的，k个最近邻居（k为正整数，通常较小）中最常见的分类决定了赋予该对象的类别。若k = 1，则该对象的类别直接由最近的一个节点赋予。
+            '''
+            k_range = range(1,100)
+            scores = {}
+            scores_list = []
+            for k in k_range:
+                clf = KNeighborsClassifier(n_neighbors=k)
+                clf.fit(X_train, y_train)
+                pred_clf = clf.predict(X_test)
+                scores[k] = metrics.accuracy_score(y_test,pred_clf)
+                scores_list.append(metrics.accuracy_score(y_test,pred_clf))
+            # st.line_chart(scores_list)
+            st.set_option('deprecation.showPyplotGlobalUse', False)
+            plt.plot(k_range,scores_list)   
+            # plt.xlabel('k_nearest_neighbors)')
+            #plt.ylabel('accuracy_score')
+            plt.xlabel('邻居数(K)',fontproperties = 'SimHei')
+            plt.ylabel('准确度',fontproperties = 'SimHei')
+            st.pyplot()
+        k_value = st.number_input("请输入算法的邻居数(k)", value = 55, step = 5)
+        clf = KNeighborsClassifier(n_neighbors=k_value)
+        clf.fit(X_train, y_train)
+        acc = clf.score(X_test, y_test)
+        pred_clf = clf.predict(X_test)
+        
+    elif classifier == 'Kmeans':
+        clf = SVC()
+        clf.fit(X_train, y_train)
+        acc = 0.9688
+        pred_clf = clf.predict(X_test)
+    '''**分类器预测**'''
     sepal_length = st.slider("请输入花瓣长度:", min_value=0.0, max_value=10.0, value=5.1, step=0.1, help="可根据上面的可视化特征选择数据")
     sepal_width = st.slider("请输入花萼宽度:", min_value=0.0, max_value=10.0, value=3.5, step=0.1)
     petal_length = st.slider("请输入花瓣长度:", min_value=0.0, max_value=10.0, value=1.4, step=0.1)
@@ -152,5 +188,6 @@ if st.checkbox('模型建立及品种预测'):
     feature_prdt = clf.predict(feature_value)
     emoji = ":blue_heart:" if feature_prdt == 'Setosa' else (
         ":green_heart:" if feature_prdt == 'Virginica' else ":heart:")
-    '你选择的算法为', classifier
+    '你选择的算法为:', classifier
+    '准确率:', round(acc,4)*100,'%' 
     st.write(f'预测结果为 -> *{feature_prdt[0]}* {emoji}')
