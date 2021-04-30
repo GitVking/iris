@@ -13,16 +13,7 @@ from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier 
 from sklearn import metrics
 from hulearn.experimental.interactive import InteractiveCharts
-import asyncio
-def get_or_create_eventloop():
-    try:
-        return asyncio.get_event_loop()
-    except RuntimeError as ex:
-        if "There is no current event loop in thread" in str(ex):
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            return asyncio.get_event_loop()
-get_or_create_eventloop()
+
 st.title('鸢尾花数据集分析')
 # '''
 # >1, 鸢尾花数据集介绍  
