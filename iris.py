@@ -12,15 +12,26 @@ from sklearn.metrics import confusion_matrix
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier 
 from sklearn import metrics
+from hulearn.experimental.interactive import InteractiveCharts
+import asyncio
+def get_or_create_eventloop():
+    try:
+        return asyncio.get_event_loop()
+    except RuntimeError as ex:
+        if "There is no current event loop in thread" in str(ex):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return asyncio.get_event_loop()
+get_or_create_eventloop()
 st.title('鸢尾花数据集分析')
-'''
->1, 鸢尾花数据集介绍  
->2, 鸢尾花数据可视化探索  
->3, 模型建立及品种预测
-'''
+# '''
+# >1, 鸢尾花数据集介绍  
+# >2, 鸢尾花数据可视化探索  
+# >3, 模型建立及品种预测
+# '''
 
-source_image = "iris.png"
-source_csv = "iris.csv"
+source_image = "./material/iris.png"
+source_csv = "./material/iris.csv"
 
 @st.cache(suppress_st_warning=True)
 def get_data(source_image, source_csv):
@@ -97,58 +108,33 @@ with st.beta_expander('模型建立及品种预测'):
     labels = df['variety'].values
 
     X_train, X_test, y_train, y_test = train_test_split(features, labels, train_size=0.7, random_state=1)
+    train = pd.concat([pd.DataFrame(X_train), pd.DataFrame(y_train)], axis=1)
+    train.columns = ['sepal_length','sepal_width','petal_length','petal_width', 'variety']
+    # if st.checkbox('data'):
+        # st.write(train)
 
 
 
-    alg = ['Support Vector Machine', 'KNN','Decision Tree', 'Kmeans']
-    classifier = st.selectbox('算法选择', alg)
+    alg = ['Support Vector Machine', 'KNN','Decision Tree']
+    classifier = st.sidebar.selectbox('算法选择', alg)
     if classifier == 'Decision Tree':
         clf = DecisionTreeClassifier()
         clf.fit(X_train, y_train)
         acc = clf.score(X_test, y_test)
-        print('%.2f%%' % (acc * 100))
-        #st.write('准确率: ', '%.2f%%' % (acc * 100))
-        # st.write('准确率: ', acc)
         pred_clf = clf.predict(X_test)
-        # cm_clf=confusion_matrix(y_test,pred_clf)
-        # st.write('Confusion matrix: ', cm_clf)
-        # st.write('混淆矩阵: ', cm_clf)
-        # feature_input = st.text_input("请输入4个以逗号分割的特征值")
-        # ans = feature_input.split(',')
-        # for i in range(len(ans)):
-        #     ans[i] = float(ans[i])
-        # feature_value = np.array([(ans)])
-        # if feature_value:
-        # feature_prdt = clf.predict(feature_value)
-        # emoji = ":blue_heart:" if feature_prdt == 'Setosa' else (
-        #     ":green_heart:" if feature_prdt == 'Virginica' else ":heart:")
-        # st.write('预测结果为: ', feature_prdt[0], emoji)
+
 
     elif classifier == 'Support Vector Machine':
         clf = SVC()
         clf.fit(X_train, y_train)
         acc = clf.score(X_test, y_test)
-        #st.write('准确率: ', '%.2f%%' % (acc * 100))
-        # st.write('准确率: ', acc)
         pred_clf = clf.predict(X_test)
-        # cm=confusion_matrix(y_test,pred_clf)
-        # st.write('Confusion matrix: ', cm)
-        # st.write('混淆矩阵: ', cm)
-        # feature_input = st.text_input("请输入4个以逗号分割的特征值")
-        # ans = feature_input.split(',')
-        # for i in range(len(ans)):
-        #     ans[i] = float(ans[i])
-        # feature_value = np.array([(ans)])
-        # if feature_value:
-        # feature_prdt = clf.predict(feature_value)[0]
-        # emoji = ":blue_heart:" if feature_prdt == 'Setosa' else (
-        #     ":green_heart:" if feature_prdt == 'Virginica' else ":heart:")
-        # st.write('预测结果为: ', feature_prdt, emoji)
+
         
     elif classifier == 'KNN':
         if st.checkbox('算法介绍', value = True):
             '''
-            最近邻居法（KNN算法，又译K-近邻算法）是一种用于分类和回归的非参数统计方法。在这两种情况下，输入包含特征空间（Feature Space）中的k个最接近的训练样本。  
+            最近邻居法（KNN算法，又译K-近邻算法）是一种用于分类和回归的非参数统计方法。  
             >在k-NN分类中，输出是一个分类族群。一个对象的分类是由其邻居的“多数表决”确定的，k个最近邻居（k为正整数，通常较小）中最常见的分类决定了赋予该对象的类别。若k = 1，则该对象的类别直接由最近的一个节点赋予。
             '''
             k_range = range(1,100)
@@ -173,17 +159,15 @@ with st.beta_expander('模型建立及品种预测'):
         clf.fit(X_train, y_train)
         acc = clf.score(X_test, y_test)
         pred_clf = clf.predict(X_test)
+
         
-    elif classifier == 'Kmeans':
-        clf = SVC()
-        clf.fit(X_train, y_train)
-        acc = 0.9688
-        pred_clf = clf.predict(X_test)
     '''**分类器预测**'''
-    sepal_length = st.slider("请输入花瓣长度:", min_value=0.0, max_value=10.0, value=5.1, step=0.1, help="可根据上面的可视化特征选择数据")
-    sepal_width = st.slider("请输入花萼宽度:", min_value=0.0, max_value=10.0, value=3.5, step=0.1)
-    petal_length = st.slider("请输入花瓣长度:", min_value=0.0, max_value=10.0, value=1.4, step=0.1)
-    petal_width = st.slider("请输入花瓣宽度:", min_value=0.0, max_value=10.0, value=0.2, step=0.1)
+    with st.form(key='my_form'):
+        sepal_length = st.slider("请输入花瓣长度:", min_value=0.0, max_value=10.0, value=5.1, step=0.1, help="可根据上面的可视化特征选择数据")
+        sepal_width = st.slider("请输入花萼宽度:", min_value=0.0, max_value=10.0, value=3.5, step=0.1)
+        petal_length = st.slider("请输入花瓣长度:", min_value=0.0, max_value=10.0, value=1.4, step=0.1)
+        petal_width = st.slider("请输入花瓣宽度:", min_value=0.0, max_value=10.0, value=0.2, step=0.1)
+        submit_button = st.form_submit_button(label='提交')
     feature_value = np.array([(sepal_length, sepal_width, petal_length, petal_width)])
     feature_prdt = clf.predict(feature_value)
     emoji = ":blue_heart:" if feature_prdt == 'Setosa' else (
