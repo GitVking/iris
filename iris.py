@@ -12,7 +12,6 @@ from sklearn.metrics import confusion_matrix
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier 
 from sklearn import metrics
-from hulearn.experimental.interactive import InteractiveCharts
 
 st.title('鸢尾花数据集分析')
 # '''
