@@ -27,7 +27,7 @@ source_csv = "./material/iris.csv"
 def get_data(source_image, source_csv):
     image = Image.open(source_image)
     df = pd.read_csv(source_csv)
-    st.write("cache miss")
+    # st.write("cache miss")
     return image, df
 
 image, df = get_data(source_image, source_csv)
@@ -54,8 +54,8 @@ with st.beta_expander('鸢尾花数据可视化探索 '):
     species = st.sidebar.multiselect('鸢尾花品种选择', df['variety'].unique())
     if not species:
         st.sidebar.error("请至少选择一个鸢尾花品种")
-    col1 = st.sidebar.selectbox('x轴特征选择', df.columns[0:4])
-    col2 = st.sidebar.selectbox('y轴特征选择', df.columns[0:4])
+    col1 = st.sidebar.selectbox('x轴特征选择', df.columns[0:4:2])
+    col2 = st.sidebar.selectbox('y轴特征选择', df.columns[1:5:2])
 
     new_df = df[(df['variety'].isin(species))]
 
